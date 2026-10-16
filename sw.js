@@ -1,10 +1,10 @@
 /* Caches only this site's page shell (pages, styles, icons) so it installs and
    opens as an app. The QueueBot web app itself runs inside the frame from
    script.google.com and is never cached: no customer data is stored here. */
-var CACHE = "qb-shell-v2";
+var CACHE = "qb-shell-v3";
 var SHELL = [
-  "./", "index.html", "frame.css", "frame.js", "signin.js", "config.js",
-  "uw/", "store/", "test/uw/", "test/store/",
+  "./", "index.html", "frame.css", "frame.js", "signin.js", "signin-ui.js", "signin.css", "config.js",
+  "uw/", "store/", "test/uw/", "test/store/", "demo/", "demo/demo.js", "demo/demo.css",
   "uw/manifest.webmanifest", "store/manifest.webmanifest", "test/uw/manifest.webmanifest", "test/store/manifest.webmanifest",
   "icons/icon-192.png", "icons/icon-512.png", "icons/maskable-512.png", "icons/apple-touch-icon.png",
   "icons/favicon-32.png", "icons/motory-logo.png"
