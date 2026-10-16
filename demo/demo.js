@@ -93,7 +93,7 @@
           '<span class="st wide">' + r.step + '</span><span class="tt wide">' + r.t + '</span><span class="dd">' + esc(r.d) + '</span><span class="gr"></span>' +
           '<span class="yw">You will:</span>' + r.does.map(function (x) { return '<span class="x"><i>&#9656;</i>' + esc(x) + '</span>'; }).join("") + '</button>';
       }).join("") + '</div>' +
-      '<div class="qdm-today w"><i></i>Today\'s demo: 16 deals in every stage, a conditional, a requeue, an answer to flag and a close race for first.<i></i></div>' +
+      '<div class="qdm-today w"><i></i>Today\'s demo: 16 deals in every stage, a conditional, a requeue, a flagged answer and a close race for first.<i></i></div>' +
       '<div class="qdm-list n">' + ROLES.map(function (r) {
         return '<button type="button" class="qdm-prole ' + r.k + (r.k === (cur || "store") ? " now" : "") + '" data-role="' + r.k + '">' +
           '<span class="bar"></span><span class="nm"><b>' + r.t + '</b><small>' + esc(r.p) + '</small></span><span class="ch" aria-hidden="true">&rsaquo;</span></button>';
