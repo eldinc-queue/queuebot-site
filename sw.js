@@ -1,7 +1,7 @@
 /* Caches only this site's page shell (pages, styles, icons) so it installs and
    opens as an app. The QueueBot web app itself runs inside the frame from
    script.google.com and is never cached: no customer data is stored here. */
-var CACHE = "qb-shell-v1";
+var CACHE = "qb-shell-v2";
 var SHELL = [
   "./", "index.html", "frame.css", "frame.js", "config.js",
   "uw/", "store/", "test/uw/", "test/store/",
