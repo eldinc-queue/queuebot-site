@@ -21,7 +21,7 @@
     return;
   }
 
-  // Pass the page's own query on (for example ?store=Bradenton).
+  // Pass the page's own query on (for example ?store=Florence).
   var q = new URLSearchParams(location.search);
   if (role === "store") q.set("role", "store");
   var src = base + (q.toString() ? "?" + q.toString() : "");

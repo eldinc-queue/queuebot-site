@@ -8,7 +8,7 @@ QueueBot Apps Script web app full screen in a frame and can be installed as an a
 | Page | Opens |
 | --- | --- |
 | `/uw/` | UW and Closing dashboard (live) |
-| `/store/` | Store dashboard (live). Query strings pass through, e.g. `/store/?store=Bradenton` |
+| `/store/` | Store dashboard (live). Query strings pass through, e.g. `/store/?store=Florence` |
 | `/test/uw/`, `/test/store/` | Same, on the test copy |
 | `/demo/` | The demo copy: password, role picker, gold DEMO bar |
 
