@@ -1,5 +1,9 @@
 /* Where each page points. Only public web app links live here: no keys, no data. */
 window.QB_SITE = {
+  // Push alerts (push.js, docs/notifications.md in the queuebot repo). Firebase console > Project settings:
+  // General > Your apps (web app) for the first four, Cloud Messaging > Web Push certificates > Key pair for vapidKey.
+  // Public values, not secrets. Left empty, push stays off and alerts still show inside QueueBot.
+  firebase: { apiKey: "", projectId: "", messagingSenderId: "", appId: "", vapidKey: "" },
   // Google sign-in client (not a secret). Google Cloud > Google Auth Platform > Clients.
   clientId: "878847989346-q3fgt5pooha0l5dv5uj62pms3vorqt2h.apps.googleusercontent.com",
   // Demo copy web app link (QueueBot DEMO project), for /demo.
