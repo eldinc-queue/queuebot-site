@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<title>Motory Group reviews</title>
+<link rel="icon" href="../icons/favicon-32.png" sizes="32x32">
+<style>
+  body { margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center; background: #ffffff; color: #444444;
+         font: 16px "Open Sans", Arial, sans-serif; text-align: center; padding: 0 16px; }
+  @media (prefers-color-scheme: dark) { body { background: #001a33; color: #e8eef5; } }
+  p { margin: 12px 0 0; }
+  a { color: #0e76bc; }
+</style>
+</head>
+<body>
+<div>
+  <img src="../icons/icon-192.png" alt="Motory Group" width="96" height="96">
+  <p id="msg">Opening Google reviews...</p>
+</div>
+<script src="../config.js"></script>
+<script>
+/* Review link: /r/?t=<token>&e=<live|test|demo>. Asks QueueBot for the store's Google review page
+   (QueueBot records that the link was opened), then goes there. No customer data on this page. */
+(function () {
+  var q = new URLSearchParams(location.search), t = q.get("t") || "", e = q.get("e") || "live";
+  var msg = document.getElementById("msg");
+  var base = (window.QB_SITE || {})[e === "test" || e === "demo" ? e : "live"];
+  function fail() { msg.textContent = "This review link did not work. Please search Google for Motory Group reviews."; }
+  if (!/^[A-Za-z0-9]{16,64}$/.test(t) || !base) { fail(); return; }
+  fetch(base + "?action=reviewopen&t=" + encodeURIComponent(t), { redirect: "follow" })
+    .then(function (r) { return r.json(); })
+    .then(function (j) {
+      if (j && j.ok && /^https:\/\//.test(String(j.url || ""))) {
+        var a = document.createElement("a"); a.href = j.url; a.textContent = "Open Google reviews";
+        msg.textContent = "Opening Google reviews... "; msg.appendChild(a);
+        location.replace(j.url);
+      } else fail();
+    })
+    .catch(fail);
+})();
+</script>
+</body>
+</html>

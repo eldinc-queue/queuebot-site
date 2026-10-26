@@ -1,0 +1,153 @@
+/* Sign-in screens on the front door (boards 17 to 20, the truck from round 11, queuebot repo docs/sign-in.md).
+   Computer (900px and wider): F+ look (Archivo, angled corners). Phone: A+ look (Montserrat, Open Sans). */
+@import url("https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,300..900&family=Montserrat:wght@600;700;800;900&family=Open+Sans:wght@400;600;700&display=swap");
+
+:root{
+  --qd-bg-wide:linear-gradient(180deg,#001a33 0%,#001428 55%,#000d1c 100%);
+  --qd-bg-phone:radial-gradient(120% 50% at 50% -10%,#10294a 0%,#070b11 60%);
+  --qd-solid:#070b11;--qd-panel:rgba(10,40,74,0.7);--qd-tile:#111925;
+  --qd-text:#e8eef5;--qd-strong:#ffffff;--qd-muted:#8ea3bb;--qd-soft:#c5ced9;
+  --qd-line:rgba(142,163,187,0.2);--qd-line2:rgba(142,163,187,0.3);
+  --qd-gold:#e6a51a;--qd-link:#e6a51a;--qd-on-gold:#1a1300;--qd-stripe:#ffffff;--qd-road:rgba(142,163,187,0.4);
+}
+@media (prefers-color-scheme: light){:root{
+  --qd-bg-wide:linear-gradient(180deg,#f4f7fb 0%,#eef2f7 55%,#e4ebf3 100%);
+  --qd-bg-phone:radial-gradient(120% 50% at 50% -10%,#dbe8f7 0%,#f4f7fb 60%);
+  --qd-solid:#f4f7fb;--qd-panel:#ffffff;--qd-tile:#ffffff;
+  --qd-text:#1d2b3c;--qd-strong:#001a33;--qd-muted:#5d6b7d;--qd-soft:#3a4a5e;
+  --qd-line:#dde4ed;--qd-line2:#c9d3df;--qd-link:#94600a;--qd-stripe:#004781;--qd-road:rgba(71,85,105,0.45);
+}}
+
+.qd{position:fixed;inset:0;z-index:20;overflow:auto;background:var(--qd-solid);background-image:var(--qd-bg-phone);color:var(--qd-text);
+  font-family:"Open Sans",system-ui,-apple-system,"Segoe UI",sans-serif;font-size:15px;-webkit-text-size-adjust:100%}
+.qd[hidden]{display:none}
+.qd a{color:var(--qd-link)}
+.qd button{font-family:Montserrat,system-ui,sans-serif;cursor:pointer}
+.qd :focus-visible{outline:3px solid var(--qd-gold);outline-offset:2px}
+.qd .w{display:none}
+.qd-wide{font-family:"Archivo",sans-serif;font-stretch:125%}
+.qd-cut{clip-path:polygon(0 0,calc(100% - 16px) 0,100% 16px,100% 100%,16px 100%,0 calc(100% - 16px))}
+.qd-cuts{clip-path:polygon(0 0,calc(100% - 10px) 0,100% 10px,100% 100%,10px 100%,0 calc(100% - 10px))}
+
+/* One column (phone, and every screen but sign-in on a computer) */
+.qd-col{box-sizing:border-box;max-width:420px;min-height:100%;margin:0 auto;padding:40px 24px 28px;display:flex;flex-direction:column}
+.qd-plogo{background:#ffffff;border-radius:14px;padding:12px 16px;align-self:flex-start}
+.qd-plogo img{height:28px;display:block}
+.qd-mid{flex:1;display:flex;flex-direction:column;justify-content:center}
+.qd-h{font-family:Montserrat,system-ui,sans-serif;font-size:26px;font-weight:900;color:var(--qd-strong);line-height:1.15;margin:0}
+.qd-sub{color:var(--qd-muted);line-height:1.5}
+.qd-gold{height:52px;border-radius:14px;border:0;background:var(--qd-gold);color:var(--qd-on-gold);font-weight:900;font-size:15px;width:100%}
+.qd-ghost{height:52px;border-radius:14px;border:1px solid var(--qd-line2);background:transparent;color:var(--qd-strong);font-weight:800;font-size:15px;width:100%}
+.qd-err{min-height:0;margin:12px 0 0;font-size:14px;color:var(--qd-gold);line-height:1.45}
+.qd-err:empty{display:none}
+
+/* Sign-in (board 18 on a phone, 17 on a computer) */
+.qd-signin .qd-hero{display:none}
+.qd-signin .qd-in{min-height:100%;display:flex;flex-direction:column}
+.qd-signin .qd-side{flex:1;width:100%}
+@media (max-width: 899px){.qd-signin .qd-card{clip-path:none}}
+.qd-signin .qd-side{box-sizing:border-box;max-width:420px;min-height:100%;margin:0 auto;padding:40px 24px 28px;display:flex;flex-direction:column}
+.qd-card{flex:1;display:flex;flex-direction:column}
+.qd-cmid{flex:1;display:flex;flex-direction:column;justify-content:center}
+.qd-card h1{font-family:Montserrat,system-ui,sans-serif;font-size:30px;font-weight:900;color:var(--qd-strong);line-height:1.1;margin:0}
+.qd-card .qd-lead{color:var(--qd-muted);margin:10px 0 28px;line-height:1.5}
+.qd-gbtn{min-height:54px;display:flex;justify-content:center}
+.qd-gfake{width:100%;height:54px;border-radius:14px;border:0;background:#ffffff;color:#3c4043;font-family:Arial,sans-serif !important;font-size:16px;font-weight:600;
+  display:flex;align-items:center;justify-content:center;gap:12px;box-shadow:inset 0 0 0 1px #dadce0}
+.qd-note{font-size:13px;color:var(--qd-muted);margin-top:14px;line-height:1.5}
+.qd-steps{display:none}
+.qd-foot{display:flex;justify-content:space-between;gap:12px;font-size:14px;margin-top:24px}
+.qd-foot .qd-new{color:var(--qd-muted)}
+
+/* Store pick (board 19) */
+.qd-me{display:flex;align-items:center;gap:12px}
+.qd-ini{width:44px;height:44px;flex:none;border-radius:50%;border:1px solid var(--qd-gold);color:var(--qd-strong);font-family:Montserrat,sans-serif;font-weight:800;display:flex;align-items:center;justify-content:center}
+.qd-me b{display:block;color:var(--qd-strong)}
+.qd-me small{font-size:13px;color:var(--qd-muted)}
+.qd-pick .qd-h{margin:30px 0 6px}
+.qd-pick .qd-sub{margin-bottom:20px}
+.qd-stores{display:flex;flex-direction:column;gap:12px}
+.qd-store{display:flex;align-items:center;gap:14px;min-height:76px;padding:0 16px;border-radius:16px;border:1px solid var(--qd-line);background:var(--qd-tile);color:var(--qd-strong);text-align:left;width:100%}
+.qd-store.on{border-color:var(--qd-gold);background:rgba(230,165,26,0.1)}
+.qd-store span.n{flex:1}
+.qd-store span.n b{display:block;font-size:17px}
+.qd-store span.n small{font-family:"Open Sans",sans-serif;font-size:13px;color:var(--qd-muted);font-weight:400}
+.qd-store .rk{font-family:Montserrat,sans-serif;font-weight:900;color:var(--qd-gold)}
+.qd-remember{display:flex;align-items:center;gap:10px;margin-top:18px;font-size:14px}
+.qd-remember input{width:20px;height:20px;accent-color:#e6a51a;margin:0}
+
+/* Not set up, coming soon (board 20) */
+.qd-warn{width:56px;height:56px;border-radius:16px;background:rgba(230,165,26,0.15);border:1px solid var(--qd-gold);display:flex;align-items:center;justify-content:center;margin-bottom:20px}
+.qd-ns p{margin:12px 0 18px;line-height:1.55}
+.qd-ns p b{color:var(--qd-strong)}
+.qd-box{padding:14px 16px;border-radius:14px;background:var(--qd-tile);border:1px solid var(--qd-line);font-size:13.5px;line-height:1.5;color:var(--qd-soft)}
+.qd-ns .qd-gold{margin-top:18px}
+.qd-ns .qd-ghost{margin-top:10px}
+.qd-plan{margin:0 0 18px;padding:0;list-style:none;display:flex;flex-direction:column;gap:8px;font-size:14px;color:var(--qd-soft)}
+
+/* Computer: board 17 */
+@media (min-width: 900px){
+  .qd .w{display:inline}
+  .qd .n{display:none}
+  .qd-signin{background-image:var(--qd-bg-wide);font-family:"Archivo",sans-serif}
+  .qd-signin::before{content:"";position:absolute;left:0;right:0;top:0;height:10px;background:repeating-linear-gradient(90deg,var(--qd-stripe) 0 10px,transparent 10px 20px);opacity:.12}
+  .qd-signin .qd-in{min-height:100%;display:grid;grid-template-columns:minmax(0,1fr) 560px}
+  .qd-signin .qd-hero{display:flex;flex-direction:column;justify-content:space-between;padding:80px 80px 60px;gap:40px}
+  .qd-brand{display:flex;align-items:center;gap:16px}
+  .qd-brand .qd-logo{background:#ffffff;padding:10px 16px}
+  .qd-brand img{height:34px;display:block}
+  .qd-brand span{font-size:22px;font-weight:800;color:var(--qd-strong)}
+  .qd-tag{font-size:64px;font-weight:900;line-height:1;color:var(--qd-strong)}
+  .qd-hero .qd-lead{margin-top:18px;max-width:520px;color:var(--qd-muted);font-size:17px;line-height:1.5}
+  .qd-ptrk{display:none}
+  .qd-signin .qd-side{max-width:none;margin:0;display:flex;align-items:center;justify-content:center;padding:40px}
+  .qd-signin .qd-plogo{display:none}
+  .qd-signin .qd-cmid{display:block}
+  .qd-signin .qd-card{flex:none;display:block;width:100%;background:var(--qd-panel);border-top:3px solid var(--qd-gold);padding:40px 40px 32px;box-sizing:border-box}
+  .qd-signin .qd-card h1{font-family:"Archivo",sans-serif;font-stretch:125%;font-size:30px;font-weight:700}
+  .qd-signin .qd-card .qd-lead{margin:8px 0 26px}
+  .qd-signin .qd-gfake{height:52px;border-radius:4px;font-weight:500}
+  .qd-signin .qd-note{display:none}
+  .qd-steps{display:flex;margin:26px 0 0;padding:0;list-style:none;flex-direction:column;gap:12px;font-size:14px;color:var(--qd-soft)}
+  .qd-steps li{display:flex;gap:10px}
+  .qd-steps li span{color:var(--qd-gold);font-weight:900}
+  .qd-signin .qd-foot{margin-top:28px;padding-top:18px;border-top:1px solid var(--qd-line)}
+}
+@media (prefers-reduced-motion: no-preference){.qd-store,.qd-gold,.qd-ghost{transition:border-color .15s,background .15s}}
+
+/* The sign-in truck (round 11, boards 152 to 155): computer, the track at the bottom of the left half (120px);
+   phone, a strip under the logo (88px). Fixed heights, overflow hidden, pointer-events none: it never takes a
+   click and never reaches Google's button. Drawn parked with its nose just past the line (what reduced motion
+   shows); with motion allowed it races in, crosses the line, rolls on and fades, every 8 seconds.
+   Only transform and opacity move. signin-ui.js removes it when the sign-in screen goes. */
+.qd-ptrk{margin-top:26px;pointer-events:none}
+.qd-trk{position:relative;overflow:hidden;pointer-events:none;flex:none;height:120px}
+.qd-trk-sm{height:88px}
+.qd-trk-road{position:absolute;left:0;right:0;bottom:12px;height:2px;background:repeating-linear-gradient(90deg,var(--qd-road) 0 12px,transparent 12px 22px)}
+.qd-trk-line{position:absolute;right:64px;bottom:4px;width:14px;height:56px;background:repeating-conic-gradient(#ffffff 0 25%,#111111 0 50%) 0 0/7px 7px}
+.qd-trk-sm .qd-trk-line{height:42px}
+.qd-trk-flag{position:absolute;right:20px;bottom:12px;width:30px;height:68px}
+.qd-trk-sm .qd-trk-flag{height:50px}
+.qd-trk-flag i{position:absolute;left:0;bottom:0;top:0;width:3px;background:#c5ced9}
+.qd-trk-flag b{position:absolute;left:3px;top:0;width:26px;height:18px;background:repeating-conic-gradient(#ffffff 0 25%,#111111 0 50%) 0 0/9px 9px;transform-origin:0 50%}
+.qd-trk-run{position:absolute;left:0;top:0;bottom:0;width:100%;transform:translateX(calc(100% - 282px))}
+.qd-trk-sm .qd-trk-run{transform:translateX(calc(100% - 214px))}
+.qd-trk-truck{position:absolute;left:0;bottom:4px}
+.qd-trk-svg{display:block;overflow:visible}
+.qd-trk-speed{display:none;position:absolute;left:-54px;top:38%;width:46px}
+.qd-trk-speed i{display:block;height:2px;margin:6px 0;border-radius:2px;background:linear-gradient(90deg,transparent,#e6a51a)}
+.qd-trk-speed i:nth-child(2){margin-left:12px;background:linear-gradient(90deg,transparent,#7fb6ea)}
+@media (prefers-reduced-motion: no-preference){
+  .qd-trk-run{animation:qdTrkRun 8s infinite;will-change:transform,opacity}
+  .qd-trk-sm .qd-trk-run{animation-name:qdTrkRunSm}
+  .qd-trk-truck{animation:qdTrkBob .45s ease-in-out infinite alternate}
+  .qd-trk-speed{display:block;animation:qdTrkSpeed .45s linear infinite}
+  .qd-trk-wheel{animation:qdTrkSpin .5s linear infinite}
+  .qd-trk-flag b{animation:qdTrkWave 1.4s ease-in-out infinite alternate}
+}
+@keyframes qdTrkRun{0%{transform:translateX(-280px);opacity:0;animation-timing-function:cubic-bezier(.22,.08,.32,1)}8%{opacity:1}66%{transform:translateX(calc(100% - 226px));opacity:1;animation-timing-function:ease-in}80%{transform:translateX(calc(100% - 170px));opacity:0}100%{transform:translateX(calc(100% - 170px));opacity:0}}
+@keyframes qdTrkRunSm{0%{transform:translateX(-212px);opacity:0;animation-timing-function:cubic-bezier(.22,.08,.32,1)}8%{opacity:1}66%{transform:translateX(calc(100% - 158px));opacity:1;animation-timing-function:ease-in}80%{transform:translateX(calc(100% - 102px));opacity:0}100%{transform:translateX(calc(100% - 102px));opacity:0}}
+@keyframes qdTrkSpin{to{transform:rotate(360deg)}}
+@keyframes qdTrkBob{from{transform:translateY(0)}to{transform:translateY(-1.5px)}}
+@keyframes qdTrkSpeed{from{opacity:.9;transform:translateX(0)}to{opacity:.35;transform:translateX(-8px)}}
+@keyframes qdTrkWave{from{transform:skewY(-6deg) scaleX(.94)}to{transform:skewY(5deg) scaleX(1)}}
