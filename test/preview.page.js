@@ -1,6 +1,7 @@
 /**
  * /preview/ check (Playwright): the new front door under /preview/ opens only the
- * test and demo copies, stays inside /preview/, and the live pages are untouched.
+ * test and demo copies, stays inside /preview/, and the live pages are untouched;
+ * plus the sign-in truck (test/truck.js) on the preview pages.
  *   NODE_PATH=$(npm root -g) node test/preview.page.js
  */
 "use strict";
@@ -9,6 +10,7 @@ const fs = require("fs");
 const path = require("path");
 const assert = require("assert");
 const { chromium } = require("playwright");
+const { truckChecks } = require("./truck");
 
 const ROOT = path.join(__dirname, "..");
 const TYPES = { ".html": "text/html", ".js": "text/javascript", ".css": "text/css", ".png": "image/png", ".webmanifest": "application/manifest+json" };
@@ -48,6 +50,14 @@ const cfg = fs.readFileSync(path.join(ROOT, "preview/config.js"), "utf8");
       await page.waitForSelector("#qb-door", { timeout: 5000 });
     });
   }
+  await check("/preview/ has the sign-in branch's report deal-list skip: ?page=nodeal opens without the sign-in screen", async () => {
+    await page.goto("http://localhost:8741/preview/test/uw/?page=nodeal&from=2026-10-01&to=2026-10-14&k=x");
+    await page.waitForSelector("#qb-app", { state: "attached" });
+    await page.waitForTimeout(500);
+    assert.strictEqual(await page.evaluate(() => { const d = document.getElementById("qb-door"); return !!d && !d.hidden; }), false);
+  });
+  await truckChecks(page, check, "http://localhost:8741/preview/test/uw/");
+  await page.setViewportSize({ width: 1280, height: 720 });
   await check("/preview/demo/ frames the DEMO copy", async () => {
     await page.goto("http://localhost:8741/preview/demo/");
     await page.waitForSelector("#qb-app", { state: "attached" });
@@ -60,6 +70,14 @@ const cfg = fs.readFileSync(path.join(ROOT, "preview/config.js"), "utf8");
     await page.goto("http://localhost:8741/preview/test/store/");
     const scopes = await page.evaluate(async () => { await navigator.serviceWorker.ready; return (await navigator.serviceWorker.getRegistrations()).map((r) => r.scope); });
     assert.ok(scopes.every((s) => s.startsWith("http://localhost:8741/preview/")), scopes.join(", "));
+  });
+  await check("the preview service worker cache is qb-preview-v2 and holds the sign-in files", async () => {
+    await page.goto("http://localhost:8741/preview/test/store/");
+    await page.evaluate(() => navigator.serviceWorker.ready);
+    const names = await page.evaluate(() => caches.keys());
+    assert.ok(names.includes("qb-preview-v2") && !names.includes("qb-preview-v1"), names.join(", "));
+    const keys = await page.evaluate(async () => (await (await caches.open("qb-preview-v2")).keys()).map((r) => r.url));
+    ["signin-ui.js", "signin.css", "signin.js"].forEach((f) => assert.ok(keys.includes("http://localhost:8741/preview/" + f), f));
   });
   await browser.close(); site.close();
   console.log(fails ? fails + " failed" : "all passed");

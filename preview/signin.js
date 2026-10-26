@@ -9,6 +9,8 @@
   var KEY = "qb_session_" + env;
   var app = null;              // { source, origin } of the QueueBot page that said qb-ready
   var queue = [];              // messages for the page before it is ready
+  // The report deal list (?page=nodeal, opened from the report emails) has its own link key and no sign-in.
+  var OPEN_PAGE = /[?&]page=nodeal(&|$)/.test(location.search);
 
   function get() { try { return localStorage.getItem(KEY) || ""; } catch (e) { return ""; } }
   function set(v) { try { if (v) localStorage.setItem(KEY, v); else localStorage.removeItem(KEY); } catch (e) {} }
@@ -51,7 +53,7 @@
     try { google.accounts.id.disableAutoSelect(); } catch (e) {}
   };
   window.qbHasSession = function () { return !!get(); };
-  function show() { if (document.getElementById("qb-app")) ui("show"); }   // offline or no link: frame.js says so instead
+  function show() { if (!OPEN_PAGE && document.getElementById("qb-app")) ui("show"); }   // offline or no link: frame.js says so instead
   function hide() { ui("hide"); }
   // No session on this device: the sign-in screen shows at once, while the app loads behind it.
   if (!get()) show();
