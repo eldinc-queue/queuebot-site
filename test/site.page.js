@@ -100,7 +100,7 @@ function serve(port, handler) {
   await check("service worker keeps the sign-in and demo files", async () => {
     await page.goto("http://localhost:8731/uw/");
     await page.evaluate(() => navigator.serviceWorker.ready);
-    const keys = await page.evaluate(async () => (await (await caches.open("qb-shell-v3")).keys()).map((r) => r.url));
+    const keys = await page.evaluate(async () => (await (await caches.open("qb-shell-v4")).keys()).map((r) => r.url));
     ["signin-ui.js", "signin.css", "demo/", "demo/demo.js", "demo/demo.css"].forEach((f) => assert.ok(keys.includes("http://localhost:8731/" + f), f));
   });
   await check("front door links to store and uw", async () => {

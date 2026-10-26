@@ -13,8 +13,9 @@ QueueBot Apps Script web app full screen in a frame and can be installed as an a
 | `/demo/` | The demo copy: password, role picker, gold DEMO bar |
 
 Sign-in: `signin.js` hands the session or Google's ID token to the web app in the frame; `signin-ui.js` and
-`signin.css` are the screens (sign in, store pick, not set up). Details in the queuebot repo, docs/sign-in.md
-and docs/demo.md.
+`signin.css` are the screens (sign in, store pick, not set up; "Open in Chrome to sign in" inside apps' own
+browsers, the list is `IN_APP` in `signin-ui.js`; "Continue without signing in" in audit mode). Details in the
+queuebot repo, docs/sign-in.md and docs/demo.md.
 
 `config.js` holds the web app links (live, test, demo) and the Google sign-in client ID. `sw.js` caches only the page shell (these files and icons).
 

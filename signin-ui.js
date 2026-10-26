@@ -3,6 +3,9 @@
    the truck on its track (round 11, boards 152 to 155),
    19 "Which store today?" for people with more than one store,
    20 not set up yet (enforce mode), or "Coming soon" for a role without screens.
+   Round 13: inside an app's own browser (WhatsApp, Facebook, ...) "Open in Chrome to sign in" instead of
+   Google's button (Google refuses sign-in there), the same help under the button when Google's script does not
+   load or draw its button within 8 seconds, and "Continue without signing in" under the card in audit mode.
    signin.js does the hand-off with the QueueBot page and calls these. */
 (function () {
   var body = document.body;
@@ -90,6 +93,45 @@
     for (a = 30; a < 360; a += 60) s += '<circle cx="0" cy="-3.1" r=".55" transform="rotate(' + a + ')" fill="#2a313b"/>';
     return s + '<circle r="1.9" fill="#004781"/><circle r="17.3" fill="none" stroke="#e8edf3" stroke-width=".5" opacity=".7"/></g></g>';
   }
+  /* In-app browsers (round 13). Google blocks its sign-in page inside apps' own browsers (embedded webviews:
+     "disallowed_useragent"), so these get "Open in Chrome (or Safari) to sign in". Detection is by user agent.
+     To add an app: one row, [name people know, test on navigator.userAgent]. The last row is any other Android
+     app's browser (Android WebView marks itself "; wv)"). On iPhone and iPad, any app's browser that is not
+     Safari, Chrome, Firefox or Edge also counts: Apple's WebKit without the "Safari/" word, except the installed
+     QueueBot app (home screen, standalone), which has no "Safari/" either and signs in fine.
+     When unsure, Google's normal button shows: a real browser is never blocked. */
+  var IN_APP = [
+    ["WhatsApp", /WhatsApp/i],
+    ["Messenger", /\bMessenger\b|MessengerForiOS|MessengerLite|Orca-Android/i],
+    ["Facebook", /FBAN|FBAV|FB_IAB|FBIOS|FB4A/],
+    ["Instagram", /Instagram/i],
+    ["Gmail", /\bGmail\b/i],
+    ["LinkedIn", /LinkedInApp/i],
+    ["LINE", /\bLine\/\d/],
+    ["Snapchat", /Snapchat/i],
+    ["TikTok", /musical_ly|BytedanceWebview|\bTikTok\b/i],
+    ["X", /\bTwitter(Android)?\b/i],
+    ["WeChat", /MicroMessenger/i],
+    ["", /; wv\)/]
+  ];
+  /** { app, os: "android" | "ios" | "" } inside an app's own browser, otherwise null. */
+  function inAppBrowser(ua, standalone) {
+    ua = String(ua || "");
+    var os = /Android/.test(ua) ? "android" : /iPhone|iPad|iPod/.test(ua) ? "ios" : "";
+    for (var i = 0; i < IN_APP.length; i++) if (IN_APP[i][1].test(ua)) return { app: IN_APP[i][0], os: os };
+    if (os === "ios" && /AppleWebKit/.test(ua) && !/Safari\//.test(ua) && !standalone) return { app: "", os: os };
+    return null;
+  }
+  function standaloneApp() {
+    try { return navigator.standalone === true || !!(window.matchMedia && window.matchMedia("(display-mode: standalone)").matches); } catch (e) { return false; }
+  }
+  var IN = inAppBrowser(navigator.userAgent, standaloneApp());
+  var ANDROID = /Android/.test(navigator.userAgent);
+  var GIS_WAIT_MS = Number(window.QB_GIS_WAIT_MS) || 8000;   // the safety net under Google's button
+  var DOTS_V = '<svg class="qd-dots" width="6" height="16" viewBox="0 0 6 16" aria-hidden="true"><circle cx="3" cy="2.5" r="1.8"/><circle cx="3" cy="8" r="1.8"/><circle cx="3" cy="13.5" r="1.8"/></svg>';
+  var DOTS_H = '<svg class="qd-dots" width="16" height="6" viewBox="0 0 16 6" aria-hidden="true"><circle cx="2.5" cy="3" r="1.8"/><circle cx="8" cy="3" r="1.8"/><circle cx="13.5" cy="3" r="1.8"/></svg>';
+  function intentUrl() { return "intent://" + location.host + location.pathname + location.search + "#Intent;scheme=https;package=com.android.chrome;end"; }
+
   var trucks = 0;
   function truckSvg(w) {
     var u = "qdtk" + (++trucks);
@@ -103,7 +145,7 @@
       truckSvg(small ? 152 : 220) + '</div></div></div>';
   }
 
-  var el = null, screen = "", user = null, gisOn = false;
+  var el = null, screen = "", user = null, gisOn = false, mode = "", gisFailed = false, altTimer = null;
 
   function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
   function today() { var d = new Date(); return d.getFullYear() + "-" + (d.getMonth() + 1) + "-" + d.getDate(); }
@@ -135,28 +177,79 @@
         track(false) +
       '</section>' +
       '<section class="qd-side">' + logo("qd-plogo") + '<div class="qd-ptrk" aria-hidden="true">' + track(true) + '</div>' +
-        '<div class="qd-card qd-cut"><div class="qd-cmid">' +
+        '<div class="qd-card qd-cut' + (IN ? ' qd-inapp' : '') + '"><div class="qd-cmid">' +
+          (IN ? inAppCard() :
           '<h1 id="qd-title"><span class="w">Sign in</span><span class="n">Sign in to QueueBot</span></h1>' +
           '<p class="qd-lead"><span class="w">Use your Motory Google account, or the Gmail address your manager added for you.</span><span class="n">Your Motory Google account, or the Gmail your manager added for you.</span></p>' +
           '<div class="qd-gbtn" id="qd-gbtn"><button type="button" class="qd-gfake" id="qd-gfake">' + G + 'Sign in with Google</button></div>' +
           '<p class="qd-err" id="qd-err" role="alert">' + esc(message || "") + '</p>' +
+          '<div class="qd-alt" id="qd-alt" hidden></div>' +
           '<ul class="qd-steps">' + steps.map(function (t, i) { return '<li><span>' + (i + 1) + '</span>' + t + '</li>'; }).join("") + '</ul>' +
-          '<div class="qd-note">You stay signed in on this phone. Your unsent forms stay saved.</div>' +
+          '<div class="qd-note">You stay signed in on this phone. Your unsent forms stay saved.</div>') +
         '</div>' +
         '<div class="qd-foot"><span class="qd-new"><span class="w">New here? </span><a href="' + root + 'demo/">Practice on the demo</a></span><a href="' + HELP + '">Need help?</a></div>' +
         '</div>' +
+        '<div class="qd-skipw" id="qd-skipw" hidden><button type="button" class="qd-skip" id="qd-skip">Continue without signing in</button></div>' +
       '</section></div>');
     box().setAttribute("aria-labelledby", "qd-title");
+    document.getElementById("qd-skip").onclick = function () { if (typeof window.qbSkipSignIn === "function") window.qbSkipSignIn(); };
+    showSkip();
+    clearTimeout(altTimer);
+    if (IN) return wireOpenHelp(el);
     document.getElementById("qd-gfake").onclick = function () {
       if (gisReady()) { try { google.accounts.id.prompt(); } catch (e) {} }
       else document.getElementById("qd-err").textContent = "Google sign-in has not loaded. Check the connection and reload the page.";
     };
     drawGoogle(!message);
+    if (gisFailed) showAlt();
+    else altTimer = setTimeout(function () { if (screen === "signin" && !googleDrawn()) showAlt(); }, GIS_WAIT_MS);
   }
+
+  /* Round 13: inside an app's own browser. Same card, Google's button replaced by how to open the page in
+     Chrome (Android) or Safari (iPhone), "Copy link", and on Android "Open in Chrome" (an intent:// link). */
+  function browserName() { return IN && IN.os === "ios" ? "Safari" : IN && IN.os === "android" ? "Chrome" : "Chrome (or Safari)"; }
+  function howTo() {
+    var ios = IN ? IN.os === "ios" : !ANDROID && /iPhone|iPad|iPod/.test(navigator.userAgent);
+    var menu = ios ? '<b class="qd-menu">' + DOTS_H + '</b> menu (or the share button)' : '<b class="qd-menu">' + (ANDROID ? DOTS_V : DOTS_H) + '</b> menu, top right';
+    var open = ios ? '<b>Open in Safari</b> or <b>Open in browser</b>' : ANDROID ? '<b>Open in Chrome</b> or <b>Open in browser</b>' : '<b>Open in browser</b>, <b>Open in Chrome</b> or <b>Open in Safari</b>';
+    return '<ol class="qd-how"><li><span>1</span><span>Tap the ' + menu + '</span></li><li><span>2</span><span>Tap ' + open + '</span></li>' +
+      '<li><span>3</span><span>Sign in with Google there</span></li></ol>';
+  }
+  function openButtons(small) {
+    return '<div class="qd-open' + (small ? ' qd-open-sm' : '') + '">' +
+      (ANDROID ? '<a class="qd-gold" id="qd-chrome" href="' + esc(intentUrl()) + '">Open in Chrome</a>' : '') +
+      '<button type="button" class="' + (ANDROID ? 'qd-ghost' : 'qd-gold') + '" id="qd-copylink">Copy link</button></div>';
+  }
+  function inAppCard() {
+    var where = IN.app ? esc(IN.app) + "'s browser" : "this app's browser";
+    return '<h1 id="qd-title">Open in ' + browserName() + ' to sign in</h1>' +
+      '<p class="qd-lead">Google does not allow signing in inside ' + where + '. Open this page in ' + browserName() + ', then sign in there.</p>' +
+      openButtons(false) + howTo() +
+      '<p class="qd-hint">' + (ANDROID ? 'Or copy the link and paste it in Chrome.' : 'Or copy the link and paste it in ' + (IN.os === "ios" ? 'Safari' : 'your browser') + '.') + '</p>';
+  }
+  function wireOpenHelp(scope) {
+    var c = scope.querySelector("#qd-copylink");
+    if (c) c.onclick = function () { copy(location.href, c, "Copy link"); };
+  }
+  // The safety net: Google's script did not load, or its button is not there after GIS_WAIT_MS.
+  function googleDrawn() { var c = document.getElementById("qd-gbtn"); return gisReady() && !!c && !document.getElementById("qd-gfake") && !!c.firstElementChild; }
+  function showAlt() {
+    var a = document.getElementById("qd-alt");
+    if (!a || !a.hidden) return;
+    a.innerHTML = '<p class="qd-alt-h"><b>Sign-in not loading?</b> Open this page in ' + (ANDROID ? 'Chrome' : 'Chrome (or Safari)') + '.</p>' + howTo() + openButtons(true);
+    a.hidden = false;
+    wireOpenHelp(a);
+  }
+  window.addEventListener("error", function (ev) {
+    var t = ev && ev.target;
+    if (t && t.tagName === "SCRIPT" && /accounts\.google\.com\/gsi\//.test(t.src || "")) { gisFailed = true; if (screen === "signin") showAlt(); }
+  }, true);
+  // "Continue without signing in": only when the QueueBot page said the mode is audit (qb-ready, signin.js).
+  function showSkip() { var w = document.getElementById("qd-skipw"); if (w && screen === "signin") w.hidden = mode !== "audit"; }
 
   function gisReady() { return !!(window.google && google.accounts && google.accounts.id); }
   function drawGoogle(prompt) {
-    if (screen !== "signin" || !gisReady()) return;
+    if (screen !== "signin" || !gisReady() || IN) return;   // in an app's browser Google's button would only fail
     if (!cfg.clientId) { document.getElementById("qd-err").textContent = "Sign-in is not set up yet (config.js clientId)."; return; }
     if (!gisOn) {
       google.accounts.id.initialize({ client_id: cfg.clientId, callback: gotCredential, auto_select: true, cancel_on_tap_outside: false, itp_support: true });
@@ -266,11 +359,13 @@
 
   // The truck goes with the sign-in screen, so it never runs behind the app.
   function hide() {
+    clearTimeout(altTimer);
     if (el) { [].forEach.call(el.querySelectorAll(".qd-trk"), function (t) { t.parentNode.removeChild(t); }); el.hidden = true; }
     screen = "";
   }
   function signedIn(d) {
-    var u = d.user || {}, mode = d.mode || "";
+    var u = d.user || {};
+    if (d.mode) mode = String(d.mode);
     user = u;
     if (mode === "enforce" && !u.active) return notSetUp(u.email);
     var roles = u.roles || [];
@@ -294,6 +389,7 @@
 
   window.QB_SIGNIN_UI = {
     show: function () { if (screen !== "signin") signIn(""); },
+    mode: function (m) { mode = String(m || ""); showSkip(); },
     hide: hide, signedIn: signedIn, failed: failed, storeInfo: storeInfo, storeToday: storeToday,
     signedOut: function () { try { localStorage.removeItem(STORE_KEY); sessionStorage.removeItem(STORE_KEY); } catch (e) {} }
   };

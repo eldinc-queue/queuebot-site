@@ -71,12 +71,12 @@ const cfg = fs.readFileSync(path.join(ROOT, "preview/config.js"), "utf8");
     const scopes = await page.evaluate(async () => { await navigator.serviceWorker.ready; return (await navigator.serviceWorker.getRegistrations()).map((r) => r.scope); });
     assert.ok(scopes.every((s) => s.startsWith("http://localhost:8741/preview/")), scopes.join(", "));
   });
-  await check("the preview service worker cache is qb-preview-v2 and holds the sign-in files", async () => {
+  await check("the preview service worker cache is qb-preview-v3 and holds the sign-in files", async () => {
     await page.goto("http://localhost:8741/preview/test/store/");
     await page.evaluate(() => navigator.serviceWorker.ready);
     const names = await page.evaluate(() => caches.keys());
-    assert.ok(names.includes("qb-preview-v2") && !names.includes("qb-preview-v1"), names.join(", "));
-    const keys = await page.evaluate(async () => (await (await caches.open("qb-preview-v2")).keys()).map((r) => r.url));
+    assert.ok(names.includes("qb-preview-v3") && !names.includes("qb-preview-v2"), names.join(", "));
+    const keys = await page.evaluate(async () => (await (await caches.open("qb-preview-v3")).keys()).map((r) => r.url));
     ["signin-ui.js", "signin.css", "signin.js"].forEach((f) => assert.ok(keys.includes("http://localhost:8741/preview/" + f), f));
   });
   await browser.close(); site.close();
