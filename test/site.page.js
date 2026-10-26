@@ -1,7 +1,7 @@
 /**
  * Front door site check (Playwright). Serves site/ locally, points config.js at a
  * local stand-in for the web app, and checks framing, query pass-through,
- * manifests and the shell-only service worker.
+ * manifests, the shell-only service worker and the sign-in truck (test/truck.js).
  *   NODE_PATH=$(npm root -g) node test/site.page.js  (needs Playwright)
  */
 "use strict";
@@ -10,6 +10,7 @@ const fs = require("fs");
 const path = require("path");
 const assert = require("assert");
 const { chromium } = require("playwright");
+const { truckChecks } = require("./truck");
 
 const ROOT = path.join(__dirname, "..");
 const TYPES = { ".html": "text/html", ".js": "text/javascript", ".css": "text/css", ".png": "image/png", ".webmanifest": "application/manifest+json" };
@@ -81,13 +82,15 @@ function serve(port, handler) {
     await page.reload();
     await page.locator("#qb-msg").waitFor();
     assert.match(await page.locator("#qb-msg").textContent(), /offline/i);
-    await ctx.setOffline(false);
+    await Promise.all([page.waitForEvent("load"), ctx.setOffline(false)]);   // frame.js reloads when back online
   });
   await check("sign-in screen shows over the frame when there is no session", async () => {
     await page.goto("http://localhost:8731/uw/");
     await page.locator("#qb-door #qd-gfake").waitFor();
     assert.ok(await page.locator("#qb-app").count());
   });
+  await truckChecks(page, check, "http://localhost:8731/test/uw/");
+  await page.setViewportSize({ width: 1280, height: 720 });
   await check("demo page frames the demo link under the gold bar, with the password screen", async () => {
     await page.goto("http://localhost:8731/demo/");
     assert.strictEqual(await page.locator("#qb-app").getAttribute("src"), "http://localhost:8732/demo/exec?role=store");
