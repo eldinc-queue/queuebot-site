@@ -59,6 +59,30 @@
 .qd-foot{display:flex;justify-content:space-between;gap:12px;font-size:14px;margin-top:24px}
 .qd-foot .qd-new{color:var(--qd-muted)}
 
+/* Round 13: inside an app's own browser (Open in Chrome / Safari), the same help under Google's button when it
+   does not load, and "Continue without signing in" (audit mode) under the card. */
+.qd a.qd-gold,.qd a.qd-ghost{display:flex;align-items:center;justify-content:center;box-sizing:border-box;text-decoration:none;font-family:Montserrat,system-ui,sans-serif}
+.qd a.qd-gold{color:var(--qd-on-gold)}
+.qd a.qd-ghost{color:var(--qd-strong)}
+.qd-open{display:flex;flex-direction:column;gap:10px}
+.qd-open-sm .qd-gold,.qd-open-sm .qd-ghost{height:44px;border-radius:12px;font-size:14px}
+.qd-how{margin:22px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:12px;font-size:14px;color:var(--qd-soft);line-height:1.45}
+.qd-how li{display:flex;gap:10px;align-items:flex-start}
+.qd-how li>span:first-child{flex:none;width:22px;height:22px;border-radius:50%;border:1px solid var(--qd-gold);color:var(--qd-gold);font:900 12px/20px Montserrat,system-ui,sans-serif;text-align:center;box-sizing:border-box}
+.qd-how b{color:var(--qd-strong);font-weight:700}
+.qd-menu{display:inline-flex;align-items:center;justify-content:center;min-width:26px;height:22px;padding:0 4px;margin:0 2px;border-radius:6px;border:1px solid var(--qd-line2);vertical-align:middle;box-sizing:border-box}
+.qd-dots{fill:var(--qd-strong);display:block}
+.qd-hint{font-size:13px;color:var(--qd-muted);margin:16px 0 0;line-height:1.5}
+.qd-alt{margin-top:14px;padding:14px 16px 16px;border-radius:14px;background:var(--qd-tile);border:1px solid var(--qd-line)}
+.qd-alt[hidden]{display:none}
+.qd-alt-h{margin:0;font-size:14px;color:var(--qd-soft);line-height:1.45}
+.qd-alt-h b{color:var(--qd-strong)}
+.qd-alt .qd-how{margin:12px 0 14px;font-size:13.5px}
+.qd-skipw{text-align:center;margin-top:14px}
+.qd-skipw[hidden]{display:none}
+.qd-skip{background:none;border:0;min-height:44px;padding:8px 12px;color:var(--qd-muted);font-family:"Open Sans",system-ui,sans-serif !important;font-size:14px;font-weight:600;text-decoration:underline;text-underline-offset:3px}
+.qd-skip:hover{color:var(--qd-strong)}
+
 /* Store pick (board 19) */
 .qd-me{display:flex;align-items:center;gap:12px}
 .qd-ini{width:44px;height:44px;flex:none;border-radius:50%;border:1px solid var(--qd-gold);color:var(--qd-strong);font-family:Montserrat,sans-serif;font-weight:800;display:flex;align-items:center;justify-content:center}
@@ -100,7 +124,10 @@
   .qd-tag{font-size:64px;font-weight:900;line-height:1;color:var(--qd-strong)}
   .qd-hero .qd-lead{margin-top:18px;max-width:520px;color:var(--qd-muted);font-size:17px;line-height:1.5}
   .qd-ptrk{display:none}
-  .qd-signin .qd-side{max-width:none;margin:0;display:flex;align-items:center;justify-content:center;padding:40px}
+  .qd-signin .qd-side{max-width:none;margin:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px}
+  .qd-signin .qd-skipw{margin-top:18px}
+  .qd-signin .qd-alt{border-radius:4px}
+  .qd-signin .qd-inapp .qd-gold,.qd-signin .qd-inapp .qd-ghost,.qd-signin .qd-open-sm .qd-gold,.qd-signin .qd-open-sm .qd-ghost{border-radius:4px}
   .qd-signin .qd-plogo{display:none}
   .qd-signin .qd-cmid{display:block}
   .qd-signin .qd-card{flex:none;display:block;width:100%;background:var(--qd-panel);border-top:3px solid var(--qd-gold);padding:40px 40px 32px;box-sizing:border-box}
