@@ -61,7 +61,9 @@ async function truckChecks(page, check, url) {
     assert.ok(s.idsUnique && s.ids.length >= 14, "gradient ids unique per copy");
     const d = await page.locator(".qd-trk-run").first().evaluate((e) => e.getAnimations()[0].effect.getTiming().duration);
     assert.strictEqual(d, 8000, "8 second loop");
-    assert.strictEqual(await page.locator(".qd-trk script, .qd-trk img, .qd-trk image, .qd-trk use").count(), 0, "inline SVG only, nothing fetched");
+    assert.strictEqual(await page.locator(".qd-trk script, .qd-trk img, .qd-trk use").count(), 0, "inline SVG only, nothing fetched");
+    const marks = await page.locator(".qd-trk image").evaluateAll((l) => l.map((e) => e.getAttribute("href") || ""));
+    assert.ok(marks.length >= 1 && marks.every((h) => h.indexOf("data:image/png;base64,") === 0), "the door's MG mark is inline (data: URI), nothing fetched");
   });
   for (const [w, h] of [[1440, 900], [390, 844]]) {
     await check("truck: Google's button is the top element at its centre all through the loop, no overlap, no layout shift (" + w + ")", async () => {
