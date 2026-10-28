@@ -40,7 +40,7 @@ const cfg = fs.readFileSync(path.join(ROOT, "preview/config.js"), "utf8");
     assert.ok(!/\blive\s*:/.test(cfg), "no live link");
     assert.ok(!/http:\/\//.test(cfg));
   });
-  for (const [p, role] of [["test/store/", "store"], ["test/uw/", "uw"], ["test/sales/", "sales"]]) {
+  for (const [p, role] of [["test/store/", "store"], ["test/uw/", "uw"], ["test/sales/", "sales"], ["test/hub/", "hub"]]) {
     await check("/preview/" + p + " frames the TEST copy and shows the sign-in screen", async () => {
       await page.goto("http://localhost:8741/preview/" + p);
       await page.waitForSelector("#qb-app", { state: "attached" });
@@ -48,6 +48,7 @@ const cfg = fs.readFileSync(path.join(ROOT, "preview/config.js"), "utf8");
       assert.ok(src.startsWith("https://script.google.com/macros/s/AKfycbwSx8bp"), src);
       if (role === "store") assert.match(src, /role=store/);
       if (role === "sales") assert.match(src, /page=sales/);
+      if (role === "hub") assert.match(src, /page=hub/);
       await page.waitForSelector("#qb-door", { timeout: 5000 });
     });
   }
@@ -72,12 +73,12 @@ const cfg = fs.readFileSync(path.join(ROOT, "preview/config.js"), "utf8");
     const scopes = await page.evaluate(async () => { await navigator.serviceWorker.ready; return (await navigator.serviceWorker.getRegistrations()).map((r) => r.scope); });
     assert.ok(scopes.every((s) => s.startsWith("http://localhost:8741/preview/")), scopes.join(", "));
   });
-  await check("the preview service worker cache is qb-preview-v4 and holds the sign-in files", async () => {
+  await check("the preview service worker cache is qb-preview-v5 and holds the sign-in files", async () => {
     await page.goto("http://localhost:8741/preview/test/store/");
     await page.evaluate(() => navigator.serviceWorker.ready);
     const names = await page.evaluate(() => caches.keys());
-    assert.ok(names.includes("qb-preview-v4") && !names.includes("qb-preview-v2"), names.join(", "));
-    const keys = await page.evaluate(async () => (await (await caches.open("qb-preview-v4")).keys()).map((r) => r.url));
+    assert.ok(names.includes("qb-preview-v5") && !names.includes("qb-preview-v2"), names.join(", "));
+    const keys = await page.evaluate(async () => (await (await caches.open("qb-preview-v5")).keys()).map((r) => r.url));
     ["signin-ui.js", "signin.css", "signin.js"].forEach((f) => assert.ok(keys.includes("http://localhost:8741/preview/" + f), f));
   });
   await browser.close(); site.close();
