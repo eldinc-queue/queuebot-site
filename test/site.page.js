@@ -100,9 +100,17 @@ function serve(port, handler) {
   await check("service worker keeps the sign-in and demo files", async () => {
     await page.goto("http://localhost:8731/uw/");
     await page.evaluate(() => navigator.serviceWorker.ready);
-    const keys = await page.evaluate(async () => (await (await caches.open("qb-shell-v4")).keys()).map((r) => r.url));
-    ["signin-ui.js", "signin.css", "demo/", "demo/demo.js", "demo/demo.css"].forEach((f) => assert.ok(keys.includes("http://localhost:8731/" + f), f));
+    const keys = await page.evaluate(async () => (await (await caches.open("qb-shell-v5")).keys()).map((r) => r.url));
+    ["signin-ui.js", "signin.css", "demo/", "demo/demo.js", "demo/demo.css", "sales/", "hub/"].forEach((f) => assert.ok(keys.includes("http://localhost:8731/" + f), f));
   });
+  for (const role of ["sales", "hub"]) {
+    await check(role + " page (live) opens the live app with page=" + role, async () => {
+      await page.goto("http://localhost:8731/" + role + "/");
+      await page.waitForSelector("#qb-app", { state: "attached" });
+      assert.match(await page.locator("#qb-app").getAttribute("src"), new RegExp("page=" + role));
+      assert.strictEqual(await page.evaluate(() => document.body.getAttribute("data-env")), "live");
+    });
+  }
   await check("front door links to store and uw", async () => {
     await page.goto("http://localhost:8731/");
     assert.deepStrictEqual(await page.locator("nav a").evaluateAll((a) => a.map((x) => x.getAttribute("href"))), ["store/", "uw/"]);
