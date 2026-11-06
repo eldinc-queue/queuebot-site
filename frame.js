@@ -1,5 +1,5 @@
 /* Shows the QueueBot web app full screen inside this page.
-   <body data-env="live|test" data-role="uw|store"> */
+   <body data-env="live|test" data-role="uw|store|sales|hub"> */
 (function () {
   var body = document.body;
   var env = body.getAttribute("data-env") || "live";
@@ -21,9 +21,11 @@
     return;
   }
 
-  // Pass the page's own query on (for example ?store=Bradenton).
+  // Pass the page's own query on (for example ?store=Florence).
   var q = new URLSearchParams(location.search);
   if (role === "store") q.set("role", "store");
+  if (role === "sales") q.set("page", "sales");   // Master Sales Dashboard
+  if (role === "hub") q.set("page", "hub");       // My Hub (Eldin only)
   var src = base + (q.toString() ? "?" + q.toString() : "");
 
   var f = document.createElement("iframe");

@@ -1,7 +1,7 @@
 /**
  * Front door site check (Playwright). Serves site/ locally, points config.js at a
  * local stand-in for the web app, and checks framing, query pass-through,
- * manifests and the shell-only service worker.
+ * manifests, the shell-only service worker and the sign-in truck (test/truck.js).
  *   NODE_PATH=$(npm root -g) node test/site.page.js  (needs Playwright)
  */
 "use strict";
@@ -10,6 +10,7 @@ const fs = require("fs");
 const path = require("path");
 const assert = require("assert");
 const { chromium } = require("playwright");
+const { truckChecks } = require("./truck");
 
 const ROOT = path.join(__dirname, "..");
 const TYPES = { ".html": "text/html", ".js": "text/javascript", ".css": "text/css", ".png": "image/png", ".webmanifest": "application/manifest+json" };
@@ -22,7 +23,7 @@ function serve(port, handler) {
   const app = await serve(8732, (req, res) => { res.setHeader("content-type", "text/html"); res.end("<p id=app>APP " + req.url + "</p>"); });
   const site = await serve(8731, (req, res) => {
     let p = decodeURIComponent(req.url.split("?")[0]);
-    if (p === "/config.js") { res.setHeader("content-type", "text/javascript"); return res.end('window.QB_SITE={live:"http://localhost:8732/live/exec",test:"http://localhost:8732/test/exec"};'); }
+    if (p === "/config.js") { res.setHeader("content-type", "text/javascript"); return res.end('window.QB_SITE={clientId:"x.apps.googleusercontent.com",live:"http://localhost:8732/live/exec",test:"http://localhost:8732/test/exec",demo:"http://localhost:8732/demo/exec"};'); }
     if (p.endsWith("/")) p += "index.html";
     const f = path.join(ROOT, p);
     if (!f.startsWith(ROOT) || !fs.existsSync(f)) { res.statusCode = 404; return res.end("nf"); }
@@ -31,6 +32,7 @@ function serve(port, handler) {
   });
   const browser = await chromium.launch();
   const ctx = await browser.newContext();
+  await ctx.route(/accounts\.google\.com|fonts\.(googleapis|gstatic)\.com/, (r) => r.abort());   // no Google in this check
   const page = await ctx.newPage();
   let fails = 0;
   const check = async (name, fn) => { try { await fn(); console.log("  ok   " + name); } catch (e) { fails++; console.log("  FAIL " + name + "\n       " + e.message); } };
@@ -80,8 +82,35 @@ function serve(port, handler) {
     await page.reload();
     await page.locator("#qb-msg").waitFor();
     assert.match(await page.locator("#qb-msg").textContent(), /offline/i);
-    await ctx.setOffline(false);
+    await Promise.all([page.waitForEvent("load"), ctx.setOffline(false)]);   // frame.js reloads when back online
   });
+  await check("sign-in screen shows over the frame when there is no session", async () => {
+    await page.goto("http://localhost:8731/uw/");
+    await page.locator("#qb-door #qd-gfake").waitFor();
+    assert.ok(await page.locator("#qb-app").count());
+  });
+  await truckChecks(page, check, "http://localhost:8731/test/uw/");
+  await page.setViewportSize({ width: 1280, height: 720 });
+  await check("demo page frames the demo link under the gold bar, with the password screen", async () => {
+    await page.goto("http://localhost:8731/demo/");
+    assert.strictEqual(await page.locator("#qb-app").getAttribute("src"), "http://localhost:8732/demo/exec?role=store");
+    await page.locator("#qdm-pw").waitFor();
+    assert.match(await page.locator("#qdm-bar").textContent(), /^DEMO, PRACTICE ONLY/);
+  });
+  await check("service worker keeps the sign-in and demo files", async () => {
+    await page.goto("http://localhost:8731/uw/");
+    await page.evaluate(() => navigator.serviceWorker.ready);
+    const keys = await page.evaluate(async () => (await (await caches.open("qb-shell-v5")).keys()).map((r) => r.url));
+    ["signin-ui.js", "signin.css", "demo/", "demo/demo.js", "demo/demo.css", "sales/", "hub/"].forEach((f) => assert.ok(keys.includes("http://localhost:8731/" + f), f));
+  });
+  for (const role of ["sales", "hub"]) {
+    await check(role + " page (live) opens the live app with page=" + role, async () => {
+      await page.goto("http://localhost:8731/" + role + "/");
+      await page.waitForSelector("#qb-app", { state: "attached" });
+      assert.match(await page.locator("#qb-app").getAttribute("src"), new RegExp("page=" + role));
+      assert.strictEqual(await page.evaluate(() => document.body.getAttribute("data-env")), "live");
+    });
+  }
   await check("front door links to store and uw", async () => {
     await page.goto("http://localhost:8731/");
     assert.deepStrictEqual(await page.locator("nav a").evaluateAll((a) => a.map((x) => x.getAttribute("href"))), ["store/", "uw/"]);
