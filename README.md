@@ -17,6 +17,11 @@ Sign-in: `signin.js` hands the session or Google's ID token to the web app in th
 browsers, the list is `IN_APP` in `signin-ui.js`; "Continue without signing in" in audit mode). Details in the
 queuebot repo, docs/sign-in.md and docs/demo.md.
 
+Reload (hotfix Nov 13): the QueueBot page cannot reload itself inside Apps Script's frames (it comes back white). On
+`qb-ready` `signin.js` tells the page `qb-host { reload: true }`; the update banner's Reload then sends `qb-reload` and the
+front door reloads the whole page. Without this the page opens its own address in the tab instead (queuebot repo,
+docs/releases/hotfix-reload.md).
+
 `config.js` holds the web app links (live, test, demo) and the Google sign-in client ID. `sw.js` caches only the page shell (these files and icons).
 
 Check before pushing: `NODE_PATH=$(npm root -g) node test/site.page.js` (Playwright; uses a local stand-in for the web app).

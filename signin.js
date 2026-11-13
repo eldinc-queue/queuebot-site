@@ -4,7 +4,9 @@
    The screens (sign-in, store pick, not set up; the demo password and roles)
    are window.QB_SIGNIN_UI, from signin-ui.js or demo/demo.js.
    Round 13: the page's qb-ready carries the sign-in mode; in audit the sign-in screen offers "Continue without
-   signing in", which hides it for this tab and tells the page (qb-skip-signin, with this device's random id). */
+   signing in", which hides it for this tab and tells the page (qb-skip-signin, with this device's random id).
+   Hotfix Nov 13: on qb-ready the page hears qb-host { reload: true }; its update banner's Reload then sends qb-reload
+   and this page reloads itself (only from the QueueBot frame, the same checks as every message here). */
 (function () {
   var SANDBOX = /^https:\/\/[a-z0-9-]+-script\.googleusercontent\.com$/;
   var env = document.body.getAttribute("data-env") || "live";
@@ -40,6 +42,7 @@
     var d = ev.data;
     if (d.type === "qb-ready") {
       app = { source: ev.source, origin: ev.origin };
+      send({ type: "qb-host", reload: true });   // this front door reloads itself on qb-reload (hotfix Nov 13)
       if (d.mode) { if (d.mode !== "audit") setSkip(false); ui("mode", String(d.mode)); }   // an older page sends no mode
       if (queue.length) { var q = queue; queue = []; q.forEach(send); }
       else if (get()) send({ type: "qb-session", session: get(), store: ui("storeToday") || "" });
@@ -56,6 +59,10 @@
       ui("failed", d);
     } else if (d.type === "qb-store-info") {
       ui("storeInfo", d);
+    } else if (d.type === "qb-reload") {
+      // The update banner's Reload (queuebot repo, docs/releases/hotfix-reload.md): the QueueBot page cannot reload
+      // itself inside Apps Script's frames (it comes back white), so the whole front door page reloads, frame and all.
+      location.reload();
     }
   });
   // The QueueBot page is the frame inside Apps Script's frame inside ours.
