@@ -3,6 +3,7 @@
    the truck on its track (round 11, boards 152 to 155),
    19 "Which store today?" for people with more than one store,
    20 not set up yet (enforce mode), or "Coming soon" for a role without screens.
+   Nov 9: claims or titles with no other page goes to Master Sales (/sales/) instead of "Coming soon".
    Round 13: inside an app's own browser (WhatsApp, Facebook, ...) "Open in Chrome to sign in" instead of
    Google's button (Google refuses sign-in there), the same help under the button when Google's script does not
    load or draw its button within 8 seconds, and "Continue without signing in" under the card in audit mode.
@@ -365,12 +366,30 @@
     if (el) { [].forEach.call(el.querySelectorAll(".qd-trk"), function (t) { t.parentNode.removeChild(t); }); el.hidden = true; }
     screen = "";
   }
+  /* Master Sales only (claims, titles; no role with a page permission such as store, uw, closer, manager, admin):
+     null otherwise, else the query for /sales/: claims only opens Valuation, titles only the Titles board, both the
+     default view. The server lets them in by role (src/MasterSales.js msdGate_, src/Valuation.js valGate_,
+     src/Titles.js titlesWho_); whether Valuation and Titles are switched on is the page's business. */
+  function salesOnly(u, roles) {
+    if (!u.known || (u.perms || []).length) return null;
+    var claims = roles.indexOf("claims") >= 0, titles = roles.indexOf("titles") >= 0;
+    if (!claims && !titles) return null;
+    return claims && titles ? "" : claims ? "?view=val" : "?view=titles";
+  }
   function signedIn(d) {
     var u = d.user || {};
     if (d.mode) mode = String(d.mode);
     user = u;
     if (mode === "enforce" && !u.active) return notSetUp(u.email);
     var roles = u.roles || [];
+    // Claims and titles live in Master Sales (Vehicle Valuation, the Titles board), though those roles grant no page
+    // permission: someone whose only page is Master Sales goes there (Eldin, Nov 9) instead of "Coming soon".
+    var sales = salesOnly(u, roles);
+    if (sales !== null) {
+      if (role === "sales") return hide();
+      location.replace(root + (env === "test" ? "test/" : "") + "sales/" + sales);
+      return;
+    }
     if (mode === "enforce" && !(u.perms || []).length) return notSetUp(u.email, roles.filter(function (r) { return PLAN[r]; }).length ? roles.filter(function (r) { return PLAN[r]; }) : roles);
     // A store-only person who opened the UW page: their screens are the store page.
     if (role === "uw" && u.known && roles.length && roles.every(function (r) { return r === "store"; })) {

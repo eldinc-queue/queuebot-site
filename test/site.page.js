@@ -100,8 +100,8 @@ function serve(port, handler) {
   await check("service worker keeps the sign-in and demo files", async () => {
     await page.goto("http://localhost:8731/uw/");
     await page.evaluate(() => navigator.serviceWorker.ready);
-    const keys = await page.evaluate(async () => (await (await caches.open("qb-shell-v5")).keys()).map((r) => r.url));
-    ["signin-ui.js", "signin.css", "demo/", "demo/demo.js", "demo/demo.css", "sales/", "hub/"].forEach((f) => assert.ok(keys.includes("http://localhost:8731/" + f), f));
+    const keys = await page.evaluate(async () => (await (await caches.open("qb-shell-v6")).keys()).map((r) => r.url));
+    ["signin-ui.js", "signin.css", "demo/", "demo/demo.js", "demo/demo.css", "sales/", "hub/", "test/sales/", "test/hub/", "test/sales/manifest.webmanifest"].forEach((f) => assert.ok(keys.includes("http://localhost:8731/" + f), f));
   });
   for (const role of ["sales", "hub"]) {
     await check(role + " page (live) opens the live app with page=" + role, async () => {
@@ -111,6 +111,54 @@ function serve(port, handler) {
       assert.strictEqual(await page.evaluate(() => document.body.getAttribute("data-env")), "live");
     });
   }
+  for (const role of ["sales", "hub"]) {
+    await check("/test/" + role + "/ opens the TEST app with page=" + role, async () => {
+      await page.goto("http://localhost:8731/test/" + role + "/?x=1");
+      await page.waitForSelector("#qb-app", { state: "attached" });
+      const src = await page.locator("#qb-app").getAttribute("src");
+      assert.ok(src.startsWith("http://localhost:8732/test/exec?"), src);
+      assert.match(src, new RegExp("page=" + role));
+      assert.match(src, /x=1/);
+      assert.strictEqual(await page.evaluate(() => document.body.getAttribute("data-env")), "test");
+      assert.match(await page.title(), /TEST$/);
+      const m = await (await page.request.get("http://localhost:8731/test/" + role + "/manifest.webmanifest")).json();
+      assert.strictEqual(m.start_url, "./"); assert.strictEqual(m.scope, "./"); assert.match(m.name, /TEST$/);
+      assert.ok(m.icons.every((i) => i.src.startsWith("../../icons/")));
+    });
+  }
+  // Root sign-in routing (Eldin, Nov 9): claims or titles with no page permission go to Master Sales,
+  // on the test copy to /test/sales/. The web app's answer is played by calling the screen's signedIn.
+  const who = (roles, perms) => ({ email: "x@motorygroup.com", name: "X", roles, stores: [], known: true, active: true, perms });
+  const lands = async (from, roles, perms, want) => {
+    await page.goto("http://localhost:8731/" + from);
+    await page.waitForSelector("#qb-door", { timeout: 5000 });
+    await page.evaluate(([u]) => { window.QB_SIGNIN_UI.mode("enforce"); window.QB_SIGNIN_UI.signedIn({ mode: "enforce", user: u }); }, [who(roles, perms)]);
+    await page.waitForURL("http://localhost:8731/" + want);
+    await page.waitForSelector("#qb-app", { state: "attached" });
+    assert.match(await page.locator("#qb-app").getAttribute("src"), /page=sales/);
+  };
+  await check("root sign-in: claims only on /test/uw/ lands on /test/sales/?view=val (test app)", async () => {
+    await lands("test/uw/", ["claims"], [], "test/sales/?view=val");
+    assert.match(await page.locator("#qb-app").getAttribute("src"), /^http:\/\/localhost:8732\/test\/exec\?.*view=val/);
+  });
+  await check("root sign-in: titles only on /test/store/ lands on /test/sales/?view=titles", async () => {
+    await lands("test/store/", ["titles"], [], "test/sales/?view=titles");
+  });
+  await check("root sign-in: claims only on /uw/ lands on /sales/?view=val (live app)", async () => {
+    await lands("uw/", ["claims"], [], "sales/?view=val");
+    assert.match(await page.locator("#qb-app").getAttribute("src"), /^http:\/\/localhost:8732\/live\/exec\?/);
+  });
+  await check("root sign-in: titles only on /store/ lands on /sales/?view=titles; claims + titles on /uw/ on /sales/", async () => {
+    await lands("store/", ["titles"], [], "sales/?view=titles");
+    await lands("uw/", ["claims", "titles"], [], "sales/");
+  });
+  await check("root sign-in: titles + uw stays on /uw/", async () => {
+    await page.goto("http://localhost:8731/uw/");
+    await page.waitForSelector("#qb-door", { timeout: 5000 });
+    await page.evaluate(([u]) => { window.QB_SIGNIN_UI.mode("enforce"); window.QB_SIGNIN_UI.signedIn({ mode: "enforce", user: u }); }, [who(["titles", "uw"], ["read:queue", "act:uw"])]);
+    await page.waitForTimeout(400);
+    assert.strictEqual(page.url(), "http://localhost:8731/uw/");
+  });
   await check("front door links to store and uw", async () => {
     await page.goto("http://localhost:8731/");
     assert.deepStrictEqual(await page.locator("nav a").evaluateAll((a) => a.map((x) => x.getAttribute("href"))), ["store/", "uw/"]);

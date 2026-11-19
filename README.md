@@ -9,7 +9,9 @@ QueueBot Apps Script web app full screen in a frame and can be installed as an a
 | --- | --- |
 | `/uw/` | UW and Closing dashboard (live) |
 | `/store/` | Store dashboard (live). Query strings pass through, e.g. `/store/?store=Florence` |
-| `/test/uw/`, `/test/store/` | Same, on the test copy |
+| `/sales/` | Master Sales Dashboard (live, `page=sales`) |
+| `/hub/` | My Hub (live, `page=hub`; Eldin only) |
+| `/test/uw/`, `/test/store/`, `/test/sales/`, `/test/hub/` | Same, on the test copy |
 | `/demo/` | The demo copy: password, role picker, gold DEMO bar |
 
 Sign-in: `signin.js` hands the session or Google's ID token to the web app in the frame; `signin-ui.js` and
