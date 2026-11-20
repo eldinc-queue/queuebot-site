@@ -12,9 +12,14 @@
 .door{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px;padding:16px;text-align:center}
 .door .logo{background:#fff;padding:14px 22px;width:min(320px,80vw)}
 .door .logo img{width:100%;display:block}
-.door nav{display:flex;gap:14px;flex-wrap:wrap;justify-content:center}
-.door a{display:block;min-width:150px;padding:14px 22px;background:#e6a51a;color:#001a33;font-weight:800;text-decoration:none;
+.door nav{display:grid;grid-template-columns:repeat(4,128px);gap:14px;justify-content:center}
+.door nav a{display:flex;flex-direction:column;align-items:center;gap:10px;padding:16px 8px 14px;background:rgba(255,255,255,.06);
+  color:inherit;font-weight:800;font-size:15px;text-decoration:none;
   clip-path:polygon(0 0,calc(100% - 10px) 0,100% 10px,100% 100%,10px 100%,0 calc(100% - 10px))}
+.door nav a:hover,.door nav a:focus-visible{background:rgba(255,255,255,.12)}
+.door nav img{width:64px;height:64px;border-radius:22%;display:block}
+@media (prefers-color-scheme: light){.door nav a{background:#fff}.door nav a:hover,.door nav a:focus-visible{background:#dde5ef}}
+@media (max-width:600px){.door nav{grid-template-columns:repeat(2,minmax(0,140px))}}
 .door-foot{position:fixed;left:0;right:0;bottom:0;padding:14px 16px;text-align:center;font-size:13px}
 .door-foot a{display:inline;min-width:0;padding:0;background:none;color:#8ea3bb;font-weight:600;text-decoration:underline;clip-path:none}
 .cut{clip-path:polygon(0 0,calc(100% - 16px) 0,100% 16px,100% 100%,16px 100%,0 calc(100% - 16px))}
@@ -24,8 +29,10 @@
 <main class="door">
   <div class="logo cut"><img src="icons/motory-logo.png" alt="Motory Group"></div>
   <nav aria-label="Open QueueBot">
-    <a href="store/">Store</a>
-    <a href="uw/">Underwriting</a>
+    <a href="store/"><img src="icons/store-192.png" alt="">Store</a>
+    <a href="uw/"><img src="icons/uw-192.png" alt="">UW</a>
+    <a href="hub/"><img src="icons/hub-192.png" alt="">My Hub</a>
+    <a href="sales/"><img src="icons/sales-192.png" alt="">Master Sales</a>
   </nav>
 </main>
 <footer class="door-foot"><a href="privacy/">Privacy</a></footer>
