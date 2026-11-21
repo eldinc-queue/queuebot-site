@@ -100,7 +100,7 @@ function serve(port, handler) {
   await check("service worker keeps the sign-in and demo files", async () => {
     await page.goto("http://localhost:8731/uw/");
     await page.evaluate(() => navigator.serviceWorker.ready);
-    const keys = await page.evaluate(async () => (await (await caches.open("qb-shell-v6")).keys()).map((r) => r.url));
+    const keys = await page.evaluate(async () => (await (await caches.open("qb-shell-v7")).keys()).map((r) => r.url));
     ["signin-ui.js", "signin.css", "demo/", "demo/demo.js", "demo/demo.css", "sales/", "hub/", "test/sales/", "test/hub/", "test/sales/manifest.webmanifest"].forEach((f) => assert.ok(keys.includes("http://localhost:8731/" + f), f));
   });
   for (const role of ["sales", "hub"]) {
@@ -159,9 +159,47 @@ function serve(port, handler) {
     await page.waitForTimeout(400);
     assert.strictEqual(page.url(), "http://localhost:8731/uw/");
   });
-  await check("front door links to store and uw", async () => {
+  await check("front door lists the four apps with their icons", async () => {
     await page.goto("http://localhost:8731/");
-    assert.deepStrictEqual(await page.locator("nav a").evaluateAll((a) => a.map((x) => x.getAttribute("href"))), ["store/", "uw/"]);
+    assert.deepStrictEqual(await page.locator("nav a").evaluateAll((a) => a.map((x) => x.getAttribute("href"))), ["store/", "uw/", "hub/", "sales/"]);
+    assert.deepStrictEqual(await page.locator("nav a").evaluateAll((a) => a.map((x) => x.textContent.trim())), ["Store", "UW", "My Hub", "Master Sales"]);
+    await page.waitForFunction(() => [...document.querySelectorAll("nav img")].every((i) => i.complete && i.naturalWidth === 192));
+  });
+  // One home screen app per address (approved Nov 20): own name, icon and color; test copies carry the TEST icons.
+  const APPS = { store: ["QueueBot Store", "QB Store", "#e6a51a"], uw: ["QueueBot UW", "QB UW", "#004781"],
+    hub: ["My Hub", "My Hub", "#0e76bc"], sales: ["QueueBot Master Sales", "QB Sales", "#444444"] };
+  for (const [app, [name, short, color]] of Object.entries(APPS)) {
+    for (const test of [false, true]) {
+      const dir = (test ? "test/" : "") + app + "/", key = app + (test ? "-test" : "");
+      await check("/" + dir + " has its own app: name, short name, icons, color", async () => {
+        await page.goto("http://localhost:8731/" + dir);
+        const href = new URL(await page.locator('link[rel="manifest"]').getAttribute("href"), page.url()).href;
+        const m = await (await page.request.get(href)).json();
+        assert.strictEqual(m.id, "./"); assert.strictEqual(m.start_url, "./"); assert.strictEqual(m.scope, "./");
+        assert.strictEqual(m.name, name + (test ? " TEST" : ""));
+        assert.strictEqual(m.short_name, test ? short + " T" : short);
+        assert.ok(m.short_name.length <= 10, m.short_name);
+        assert.strictEqual(m.theme_color, color);
+        assert.deepStrictEqual(m.icons.map((i) => [i.src.split("/").pop(), i.sizes, i.purpose || "any"]),
+          [[key + "-192.png", "192x192", "any"], [key + "-512.png", "512x512", "any"], [key + "-512.png", "512x512", "maskable"]]);
+        const apple = await page.locator('link[rel="apple-touch-icon"]').getAttribute("href");
+        assert.ok(apple.endsWith("icons/" + key + "-apple-180.png"), apple);
+        assert.strictEqual(await page.locator('meta[name="apple-mobile-web-app-title"]').getAttribute("content"), m.short_name);
+        assert.strictEqual(await page.locator('meta[name="theme-color"]').getAttribute("content"), color);
+        const srcs = m.icons.map((i) => new URL(i.src, href).href).concat([new URL(apple, page.url()).href]);
+        for (const u of srcs) {
+          const r = await page.request.get(u);
+          assert.strictEqual(r.status(), 200, u); assert.strictEqual(r.headers()["content-type"], "image/png", u);
+        }
+      });
+    }
+  }
+  await check("service worker v7 caches the new app icons", async () => {
+    await page.goto("http://localhost:8731/uw/");
+    await page.evaluate(() => navigator.serviceWorker.ready);
+    const keys = await page.evaluate(async () => (await (await caches.open("qb-shell-v7")).keys()).map((r) => r.url));
+    for (const a of ["store", "uw", "hub", "sales", "store-test", "uw-test", "hub-test", "sales-test"])
+      for (const z of ["192", "512", "apple-180"]) assert.ok(keys.includes("http://localhost:8731/icons/" + a + "-" + z + ".png"), a + "-" + z);
   });
   await check("phone width: no horizontal scroll on the front door", async () => {
     await page.setViewportSize({ width: 360, height: 740 });
