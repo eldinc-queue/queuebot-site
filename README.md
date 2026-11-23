@@ -10,6 +10,7 @@ QueueBot Apps Script web app full screen in a frame and can be installed as an a
 | `/store/` | Store dashboard (live). Query strings pass through, e.g. `/store/?store=Florence` | QB Store / QueueBot Store | gold #e6a51a, navy letters |
 | `/uw/` | UW and Closing dashboard (live) | QB UW / QueueBot UW | navy #004781 |
 | `/hub/` | My Hub (live, `page=hub`; Eldin only) | My Hub / My Hub | blue #0e76bc |
+| `/hub/co/`, `/hub/mx/`, `/hub/us/` | My Hub, same page, with a flag icon (Colombia, Mexico, USA). QueueBot shows each person their own link from the Hub icon column on Users | My Hub / My Hub | the flag with the MG circle (`icons/hub-co-*`, `hub-mx-*`, `hub-us-*`) |
 | `/sales/` | Master Sales Dashboard (live, `page=sales`) | QB Sales / QueueBot Master Sales | charcoal #444444 |
 | `/test/store/`, `/test/uw/`, `/test/hub/`, `/test/sales/` | Same, on the test copy | QB Store T, QB UW T, My Hub T, QB Sales T / name + " TEST" | same icons with a "TEST" band |
 | `/demo/` | The demo copy: password, role picker, gold DEMO bar | | |
@@ -29,6 +30,12 @@ Getting the new icon on a phone that already has the app:
 - **iPhone / iPad:** the icon and name are fixed when the app is added. Press and hold the old icon > Remove App >
   Delete from Home Screen, then open the address in Safari > Share > Add to Home Screen. Alerts on iPhone belong to
   the saved app, so turn them on again after adding it back.
+
+My Hub icon per person: the icon is fixed by the page the person saves, so each flag is its own folder. `hub/co/`,
+`hub/mx/` and `hub/us/` hold only an `index.html` (a copy of `hub/index.html` with `../../` paths and its own
+apple-touch-icon and loading image) and a `manifest.webmanifest` (own `id`/`start_url`/`scope`, flag icons). Scripts and
+styles are the shared root files. A change to `hub/index.html` goes into the three copies too. Changing someone's flag
+later: they remove My Hub from the home screen and add it again from the new link.
 
 The test apps use short names with " T" ("QB Store T", "QB UW T", "My Hub T", "QB Sales T") because iPhone cuts
 names longer than about 10 letters.
