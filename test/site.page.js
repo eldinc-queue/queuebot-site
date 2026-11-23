@@ -201,6 +201,30 @@ function serve(port, handler) {
     for (const a of ["store", "uw", "hub", "sales", "store-test", "uw-test", "hub-test", "sales-test"])
       for (const z of ["192", "512", "apple-180"]) assert.ok(keys.includes("http://localhost:8731/icons/" + a + "-" + z + ".png"), a + "-" + z);
   });
+  await check("frame fills the screen with no safe-area inset, and stays clear of an iPhone status bar", async () => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    for (const p of ["/uw/", "/store/", "/hub/", "/sales/", "/test/uw/", "/test/hub/"]) {
+      await page.goto("http://localhost:8731" + p);
+      await page.waitForSelector("#qb-app", { state: "attached" });
+      const r = await page.locator("#qb-app").evaluate((f) => { const b = f.getBoundingClientRect(); return [b.top, b.bottom, b.width]; });
+      assert.deepStrictEqual(r, [0, 844, 390], p);
+    }
+    // Chromium has no notch: add frame.css again with the inset as 47px (iPhone status bar) to check the layout.
+    const css47 = fs.readFileSync(path.join(ROOT, "frame.css"), "utf8").replace(/env\(safe-area-inset-top,0px\)/g, "47px");
+    assert.ok(css47.includes("top:47px"));
+    await page.goto("http://localhost:8731/hub/");
+    await page.waitForSelector("#qb-app", { state: "attached" });
+    await page.addStyleTag({ content: css47 });
+    const r = await page.locator("#qb-app").evaluate((f) => { const b = f.getBoundingClientRect(); return [b.top, b.bottom]; });
+    assert.deepStrictEqual(r, [47, 844]);
+    await page.goto("http://localhost:8731/demo/");   // demo: frame still right under the gold bar
+    await page.waitForSelector("#qb-app", { state: "attached" });
+    const box = () => page.locator("#qb-app").evaluate((f) => { const b = f.getBoundingClientRect(); return [b.top, b.bottom]; });
+    const before = await box();
+    await page.addStyleTag({ content: css47 });
+    assert.deepStrictEqual(await box(), before);
+    assert.ok(before[0] > 30 && before[1] === 844, String(before));
+  });
   await check("phone width: no horizontal scroll on the front door", async () => {
     await page.setViewportSize({ width: 360, height: 740 });
     await page.goto("http://localhost:8731/");
