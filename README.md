@@ -11,7 +11,7 @@ QueueBot Apps Script web app full screen in a frame and can be installed as an a
 | `/uw/` | UW and Closing dashboard (live) | QB UW / QueueBot UW | navy #004781 |
 | `/hub/` | My Hub (live, `page=hub`; Eldin only) | My Hub / My Hub | blue #0e76bc |
 | `/sales/` | Master Sales Dashboard (live, `page=sales`) | QB Sales / QueueBot Master Sales | charcoal #444444 |
-| `/test/store/`, `/test/uw/`, `/test/hub/`, `/test/sales/` | Same, on the test copy | QB Store T, QB UW T, My Hub T, QB Sales T / name + " TEST" | same icons with a "TEST" band |
+| `/test/store/`, `/test/uw/`, `/test/hub/`, `/test/sales/` | Same, on the test copy | QB Store T, QB UW T, My Hub T, QB Sales T / name + " TEST" | same icons with a black "TEST" sash across the lower-right corner |
 | `/demo/` | The demo copy: password, role picker, gold DEMO bar | | |
 
 ## Home screen apps

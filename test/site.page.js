@@ -100,7 +100,7 @@ function serve(port, handler) {
   await check("service worker keeps the sign-in and demo files", async () => {
     await page.goto("http://localhost:8731/uw/");
     await page.evaluate(() => navigator.serviceWorker.ready);
-    const keys = await page.evaluate(async () => (await (await caches.open("qb-shell-v7")).keys()).map((r) => r.url));
+    const keys = await page.evaluate(async () => (await (await caches.open("qb-shell-v9")).keys()).map((r) => r.url));
     ["signin-ui.js", "signin.css", "demo/", "demo/demo.js", "demo/demo.css", "sales/", "hub/", "test/sales/", "test/hub/", "test/sales/manifest.webmanifest"].forEach((f) => assert.ok(keys.includes("http://localhost:8731/" + f), f));
   });
   for (const role of ["sales", "hub"]) {
@@ -159,6 +159,16 @@ function serve(port, handler) {
     await page.waitForTimeout(400);
     assert.strictEqual(page.url(), "http://localhost:8731/uw/");
   });
+  // Test icons (approved Nov 23, option A "TEST sash"): solid RGB, no alpha, so iPhone shows no black corners.
+  await check("test app icons are solid RGB PNGs of the right size", async () => {
+    for (const a of ["store", "uw", "hub", "sales"])
+      for (const [z, px] of [["192", 192], ["512", 512], ["apple-180", 180]]) {
+        const b = fs.readFileSync(path.join(ROOT, "icons", a + "-test-" + z + ".png"));
+        assert.strictEqual(b.toString("ascii", 12, 16), "IHDR", a + z);
+        assert.deepStrictEqual([b.readUInt32BE(16), b.readUInt32BE(20), b[24], b[25]], [px, px, 8, 2], a + "-test-" + z);   // 8-bit RGB
+        assert.ok(!b.includes(Buffer.from("tRNS")), a + "-test-" + z + " has no transparency chunk");
+      }
+  });
   await check("front door lists the four apps with their icons", async () => {
     await page.goto("http://localhost:8731/");
     assert.deepStrictEqual(await page.locator("nav a").evaluateAll((a) => a.map((x) => x.getAttribute("href"))), ["store/", "uw/", "hub/", "sales/"]);
@@ -194,10 +204,10 @@ function serve(port, handler) {
       });
     }
   }
-  await check("service worker v7 caches the new app icons", async () => {
+  await check("service worker v9 caches the app icons (test icons: TEST sash)", async () => {
     await page.goto("http://localhost:8731/uw/");
     await page.evaluate(() => navigator.serviceWorker.ready);
-    const keys = await page.evaluate(async () => (await (await caches.open("qb-shell-v7")).keys()).map((r) => r.url));
+    const keys = await page.evaluate(async () => (await (await caches.open("qb-shell-v9")).keys()).map((r) => r.url));
     for (const a of ["store", "uw", "hub", "sales", "store-test", "uw-test", "hub-test", "sales-test"])
       for (const z of ["192", "512", "apple-180"]) assert.ok(keys.includes("http://localhost:8731/icons/" + a + "-" + z + ".png"), a + "-" + z);
   });

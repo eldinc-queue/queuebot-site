@@ -1,26 +1,25 @@
-# Site release: branch claude/site-apps (Nov 20, 2026)
+# Site release: branch claude/test-icons (Nov 23, 2026)
 
-Already live on `main`: everything up to PR #2 (`claude/site-sales`: `/test/sales/`, `/test/hub/`, claims/titles
-routing, shell cache v6).
+Already live on `main`: everything up to PR #3 (`claude/site-apps`: own icon per app, shell cache v7).
 
-What merging this branch adds (approved plan: queuebot repo, docs/design/mockups/nov20b/apps-plan.md):
+What merging this branch adds (approved mockup, option A "TEST sash": queuebot repo, branch claude/mockups-test-icons,
+docs/design/mockups/test-icons/, made by make_test_icons.py there):
 
 | Change | Where |
 | --- | --- |
-| Own icon per app: MG roundel on gold (Store), navy (UW), blue (My Hub), charcoal (Master Sales); 512, 192 (any and maskable) and 180 apple-touch-icon; test copies with a "TEST" band | `icons/<app>-*.png`, `icons/<app>-test-*.png` (24 new files; old icons kept) |
-| Names: QB Store / QueueBot Store, QB UW / QueueBot UW, My Hub, QB Sales / QueueBot Master Sales; test: QB Store T, QB UW T, My Hub T, QB Sales T. `id`, `start_url`, `scope` unchanged | the 8 `manifest.webmanifest` |
-| Per page: apple-touch-icon, apple-mobile-web-app-title, theme-color, loading image | the 8 `index.html` |
-| Root page lists the four apps with their icons | `index.html` |
-| Shell cache v7 with the new icons | `sw.js` |
-| Checks for each app's manifest, icons and iPhone tags | `test/site.page.js` |
+| New test app icons: the live icon with the MG circle a little smaller and up-left, and a black sash with TEST in gold across the lower-right corner (a shape that still shows in iOS Tinted and Clear). 512, 192 (any and maskable) and 180 apple-touch-icon, solid RGB, no alpha. Same file names, so manifests and pages are unchanged | `icons/store-test-*`, `icons/uw-test-*`, `icons/hub-test-*`, `icons/sales-test-*` (12 files replaced) |
+| Shell cache v9 (v8 is taken by `claude/hub-icons`; when both merge, keep v9 and the file lists of both) | `sw.js` |
+| Check that the test icons are solid RGB at the right sizes | `test/site.page.js` |
 
-`/preview/` is not changed.
+Live icons, `/preview/` and the manifests are not changed.
 
 After GitHub Pages deploys, check:
 
-1. https://queuebot.motorygroup.com/ shows Store, UW, My Hub and Master Sales with their icons.
-2. On Android, an installed QueueBot app picks up its new name and icon within about a day (no reinstall).
-3. On iPhone, delete the saved app and add it again from Safari: the new icon and name show.
-4. Pages open before may need one reload to pick up cache v7.
+1. https://queuebot.motorygroup.com/test/uw/ (and /test/store/, /test/hub/, /test/sales/): Safari > Share > Add to Home
+   Screen shows the TEST sash icon.
+2. On iPhone, testers remove each saved test app (press and hold > Remove App > Delete from Home Screen) and add it
+   again from Safari: iPhone keeps the old icon until then. Turn alerts on again after adding it back.
+3. On Android, an installed test app picks up the new icon within about a day (no reinstall).
+4. Pages open before may need one reload to pick up cache v9.
 
 Earlier release notes: see git history of this file.
