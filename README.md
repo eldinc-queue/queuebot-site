@@ -12,7 +12,7 @@ QueueBot Apps Script web app full screen in a frame and can be installed as an a
 | `/hub/` | My Hub (live, `page=hub`; Eldin only) | My Hub / My Hub | blue #0e76bc |
 | `/hub/co/`, `/hub/mx/`, `/hub/us/` | My Hub, same page, with a flag icon (Colombia, Mexico, USA). QueueBot shows each person their own link from the Hub icon column on Users | My Hub / My Hub | the flag with the MG circle (`icons/hub-co-*`, `hub-mx-*`, `hub-us-*`) |
 | `/sales/` | Master Sales Dashboard (live, `page=sales`) | QB Sales / QueueBot Master Sales | charcoal #444444 |
-| `/test/store/`, `/test/uw/`, `/test/hub/`, `/test/sales/` | Same, on the test copy | QB Store T, QB UW T, My Hub T, QB Sales T / name + " TEST" | same icons with a "TEST" band |
+| `/test/store/`, `/test/uw/`, `/test/hub/`, `/test/sales/` | Same, on the test copy | QB Store T, QB UW T, My Hub T, QB Sales T / name + " TEST" | same icons with a black "TEST" sash across the lower-right corner |
 | `/demo/` | The demo copy: password, role picker, gold DEMO bar | | |
 
 ## Home screen apps
