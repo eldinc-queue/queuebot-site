@@ -100,8 +100,8 @@ function serve(port, handler) {
   await check("service worker keeps the sign-in and demo files", async () => {
     await page.goto("http://localhost:8731/uw/");
     await page.evaluate(() => navigator.serviceWorker.ready);
-    const keys = await page.evaluate(async () => (await (await caches.open("qb-shell-v7")).keys()).map((r) => r.url));
-    ["signin-ui.js", "signin.css", "demo/", "demo/demo.js", "demo/demo.css", "sales/", "hub/", "test/sales/", "test/hub/", "test/sales/manifest.webmanifest"].forEach((f) => assert.ok(keys.includes("http://localhost:8731/" + f), f));
+    const keys = await page.evaluate(async () => (await (await caches.open("qb-shell-v8")).keys()).map((r) => r.url));
+    ["signin-ui.js", "signin.css", "demo/", "demo/demo.js", "demo/demo.css", "sales/", "hub/", "test/sales/", "test/hub/", "test/sales/manifest.webmanifest", "hub/co/", "hub/mx/", "hub/us/", "hub/co/manifest.webmanifest"].forEach((f) => assert.ok(keys.includes("http://localhost:8731/" + f), f));
   });
   for (const role of ["sales", "hub"]) {
     await check(role + " page (live) opens the live app with page=" + role, async () => {
@@ -194,11 +194,38 @@ function serve(port, handler) {
       });
     }
   }
-  await check("service worker v7 caches the new app icons", async () => {
+  // My Hub icon per person (approved Nov 23): /hub/co/, /hub/mx/, /hub/us/ are My Hub with their own icon and app id.
+  for (const c of ["co", "mx", "us"]) {
+    await check("/hub/" + c + "/ is My Hub (live, page=hub) with its own flag icon and app id", async () => {
+      await page.goto("http://localhost:8731/hub/" + c + "/?x=1");
+      await page.waitForSelector("#qb-app", { state: "attached" });
+      assert.strictEqual(await page.locator("#qb-app").getAttribute("src"), "http://localhost:8732/live/exec?x=1&page=hub");
+      assert.strictEqual(await page.title(), "My Hub");
+      const href = new URL(await page.locator('link[rel="manifest"]').getAttribute("href"), page.url()).href;
+      assert.strictEqual(href, "http://localhost:8731/hub/" + c + "/manifest.webmanifest");
+      const m = await (await page.request.get(href)).json();
+      assert.strictEqual(new URL(m.id, href).href, "http://localhost:8731/hub/" + c + "/");   // its own app, not /hub/
+      assert.strictEqual(new URL(m.start_url, href).href, "http://localhost:8731/hub/" + c + "/");
+      assert.strictEqual(m.name, "My Hub"); assert.strictEqual(m.short_name, "My Hub"); assert.strictEqual(m.theme_color, "#0e76bc");
+      assert.deepStrictEqual(m.icons.map((i) => [i.src, i.sizes, i.purpose || "any"]),
+        [["../../icons/hub-" + c + "-192.png", "192x192", "any"], ["../../icons/hub-" + c + "-512.png", "512x512", "any"], ["../../icons/hub-" + c + "-512.png", "512x512", "maskable"]]);
+      const apple = new URL(await page.locator('link[rel="apple-touch-icon"]').getAttribute("href"), page.url()).href;
+      assert.strictEqual(apple, "http://localhost:8731/icons/hub-" + c + "-apple-180.png");
+      assert.strictEqual(await page.locator('meta[name="apple-mobile-web-app-title"]').getAttribute("content"), "My Hub");
+      for (const u of m.icons.map((i) => new URL(i.src, href).href).concat([apple])) {
+        const r = await page.request.get(u);
+        assert.strictEqual(r.status(), 200, u); assert.strictEqual(r.headers()["content-type"], "image/png", u);
+      }
+      // Same shared scripts and styles as /hub/ (one copy of the logic).
+      const shared = await page.evaluate(() => [...document.querySelectorAll("script[src],link[rel=stylesheet]")].map((e) => (e.src || e.href).replace(location.origin, "")));
+      ["/frame.css", "/signin.css", "/config.js", "/signin-ui.js", "/frame.js", "/signin.js", "/push.js"].forEach((f) => assert.ok(shared.includes(f), f));
+    });
+  }
+  await check("service worker v8 caches the app icons and the My Hub flag icons", async () => {
     await page.goto("http://localhost:8731/uw/");
     await page.evaluate(() => navigator.serviceWorker.ready);
-    const keys = await page.evaluate(async () => (await (await caches.open("qb-shell-v7")).keys()).map((r) => r.url));
-    for (const a of ["store", "uw", "hub", "sales", "store-test", "uw-test", "hub-test", "sales-test"])
+    const keys = await page.evaluate(async () => (await (await caches.open("qb-shell-v8")).keys()).map((r) => r.url));
+    for (const a of ["store", "uw", "hub", "sales", "store-test", "uw-test", "hub-test", "sales-test", "hub-co", "hub-mx", "hub-us"])
       for (const z of ["192", "512", "apple-180"]) assert.ok(keys.includes("http://localhost:8731/icons/" + a + "-" + z + ".png"), a + "-" + z);
   });
   await check("frame fills the screen with no safe-area inset, and stays clear of an iPhone status bar", async () => {
